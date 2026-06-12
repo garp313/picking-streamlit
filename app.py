@@ -185,6 +185,18 @@ if st.sidebar.button("🗑️ Limpar Todos os Dados", use_container_width=True):
 if st.session_state['df_raw'] is not None:
     df_raw = st.session_state['df_raw'].copy()
     
+    # --- PROCESSAMENTO AUTOMÁTICO DE COLUNAS (Sem UI) ---
+    all_cols = list(df_raw.columns)
+    default_order = ["Produto", "Cor", "Tamanho", "desc_produto", "Grade", "Quantidade"]
+    
+    # Reordenação automática: coloca colunas padrão primeiro, seguidas por adicionais
+    ordered_cols = [col for col in default_order if col in all_cols]
+    remaining_cols = [col for col in all_cols if col not in ordered_cols]
+    df_ordered = df_raw[ordered_cols + remaining_cols]
+    
+    # Identifica colunas contendo 'desc' para ocultar automaticamente no JSON
+    cols_to_drop = [c for c in df_ordered.columns if 'desc' in c.lower()]
+    
     # Abas principais
     tab_data, tab_analytics, tab_pipeline = st.tabs([
         "📊 Dados & Filtros", 
@@ -194,46 +206,8 @@ if st.session_state['df_raw'] is not None:
     
     # --- ABA 1: DADOS E FILTROS ---
     with tab_data:
-        st.markdown("### Ajustes da Planilha")
-        
-        col_conf1, col_conf2 = st.columns([1, 1])
-        
-        with col_conf1:
-            st.markdown("**1. Reorganização das Colunas**")
-            all_cols = list(df_raw.columns)
-            # Ordem sugerida padrão
-            default_order = ["Produto", "Cor", "Tamanho", "desc_produto", "Grade", "Quantidade"]
-            
-            # Ordenar colunas baseadas na ordem desejada
-            initial_selection = [col for col in default_order if col in all_cols]
-            remaining_cols = [col for col in all_cols if col not in initial_selection]
-            current_order = initial_selection + remaining_cols
-            
-            selected_order = st.multiselect(
-                "Defina a ordem das colunas no Grid (as selecionadas vão primeiro):",
-                options=all_cols,
-                default=current_order
-            )
-            
-            # Se a seleção for diferente, atualizamos o dataframe com a ordem selecionada
-            if selected_order:
-                df_ordered = df_raw[selected_order + [c for c in all_cols if c not in selected_order]]
-            else:
-                df_ordered = df_raw
-                
-        with col_conf2:
-            st.markdown("**2. Ocultação para o JSON**")
-            # Descobrir colunas que contém 'desc'
-            suggested_drops = [c for c in df_ordered.columns if 'desc' in c.lower()]
-            cols_to_drop = st.multiselect(
-                "Selecione as colunas que devem ser removidas ANTES de gerar o JSON (Ex: descrições longas):",
-                options=list(df_ordered.columns),
-                default=suggested_drops
-            )
-        
         # Filtros Dinâmicos
-        st.markdown("---")
-        st.markdown("🔍 **Filtros Interativos**")
+        st.markdown("### 🔍 Filtros Interativos")
         
         f_cols = st.columns(3)
         
