@@ -325,49 +325,92 @@ if st.session_state['df_raw'] is not None:
                 st.info("Colunas de 'Grade' ou 'Quantidade' não encontradas para exibir gráfico de Grade.")
                 
         with g_col2:
-            # 2. Top Produtos mais volumosos (Bar Chart)
+            # 2. Top Produtos mais volumosos — usa desc_produto se disponível
+            col_desc = next((c for c in df_filtered.columns if 'desc' in c.lower()), None)
+            label_col = col_desc if col_desc else col_p
+
             if col_p and col_qtd:
-                prod_data = df_filtered.groupby(col_p)[col_qtd].sum().reset_index()
-                prod_data = prod_data.sort_values(by=col_qtd, ascending=False).head(10)
-                
+                if col_desc:
+                    prod_data = df_filtered.groupby([col_p, col_desc])[col_qtd].sum().reset_index()
+                    prod_data = prod_data.sort_values(by=col_qtd, ascending=False).head(10)
+                    # Trunca descrição para caber no gráfico
+                    prod_data['label'] = prod_data[col_desc].str.slice(0, 22)
+                else:
+                    prod_data = df_filtered.groupby(col_p)[col_qtd].sum().reset_index()
+                    prod_data = prod_data.sort_values(by=col_qtd, ascending=False).head(10)
+                    prod_data['label'] = prod_data[col_p].astype(str)
+
+                prod_data = prod_data.sort_values(by=col_qtd, ascending=True)
+
                 fig_bar = px.bar(
                     prod_data,
-                    y=col_p,
                     x=col_qtd,
+                    y='label',
                     orientation='h',
-                    title="Top 10 Produtos por Volume",
+                    title="🏆 Top 10 Produtos por Volume",
+                    text=col_qtd,
                     color=col_qtd,
-                    color_continuous_scale="Purples"
+                    color_continuous_scale=[[0, '#6366f1'], [1, '#a855f7']]
+                )
+                fig_bar.update_traces(
+                    texttemplate='%{text}',
+                    textposition='outside',
+                    marker_line_width=0
                 )
                 fig_bar.update_layout(
                     paper_bgcolor='rgba(0,0,0,0)',
                     plot_bgcolor='rgba(0,0,0,0)',
                     font_color='#f3f4f6',
-                    yaxis={'categoryorder':'total ascending'},
-                    margin=dict(t=40, b=0, l=0, r=0)
+                    font_size=12,
+                    showlegend=False,
+                    coloraxis_showscale=False,
+                    xaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.05)', title='Qtd. de Peças'),
+                    yaxis=dict(showgrid=False, title=''),
+                    margin=dict(t=50, b=20, l=10, r=60)
                 )
                 st.plotly_chart(fig_bar, use_container_width=True)
             else:
                 st.info("Colunas de 'Produto' ou 'Quantidade' não encontradas para exibir gráfico de Produtos.")
 
         st.markdown("---")
-        # 3. Distribuição por Cores
+        # 3. Top 15 Cores mais volumosas (horizontal, limpo)
         if col_c and col_qtd:
-            st.markdown("#### Volume por Código de Cor")
-            color_data = df_filtered.groupby(col_c)[col_qtd].sum().reset_index().sort_values(by=col_qtd, ascending=False)
+            st.markdown("#### 🎨 Top 15 Cores por Volume")
+            color_data = (
+                df_filtered.groupby(col_c)[col_qtd]
+                .sum()
+                .reset_index()
+                .sort_values(by=col_qtd, ascending=False)
+                .head(15)
+                .sort_values(by=col_qtd, ascending=True)
+            )
+            color_data[col_c] = "Cor " + color_data[col_c].astype(str)
+
             fig_color = px.bar(
                 color_data,
-                x=col_c,
-                y=col_qtd,
-                title="Distribuição de Peças por Cor",
+                x=col_qtd,
+                y=col_c,
+                orientation='h',
+                title="Top 15 Cores por Volume de Peças",
+                text=col_qtd,
                 color=col_qtd,
-                color_continuous_scale="Blues"
+                color_continuous_scale=[[0, '#0ea5e9'], [1, '#6366f1']]
+            )
+            fig_color.update_traces(
+                texttemplate='%{text}',
+                textposition='outside',
+                marker_line_width=0
             )
             fig_color.update_layout(
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
                 font_color='#f3f4f6',
-                margin=dict(t=40, b=20, l=0, r=0)
+                font_size=12,
+                showlegend=False,
+                coloraxis_showscale=False,
+                xaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.05)', title='Qtd. de Peças'),
+                yaxis=dict(showgrid=False, title=''),
+                margin=dict(t=50, b=20, l=10, r=60)
             )
             st.plotly_chart(fig_color, use_container_width=True)
 
