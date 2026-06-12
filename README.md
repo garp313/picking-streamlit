@@ -12,7 +12,9 @@ pinned: false
 
 Este projeto é uma ferramenta de sincronização, exportação de inventário e analytics para operações de picking. Ele contém uma interface web interativa desenvolvida em **Streamlit** e um script CLI para automatização rápida.
 
-## 🚀 Como subir no Hugging Face Spaces (Passo a Passo)
+---
+
+## 🚀 Como hospedar no Hugging Face Spaces
 
 O Hugging Face Spaces suporta Streamlit de forma nativa. Siga as instruções abaixo para hospedar seu app de graça:
 
@@ -23,28 +25,11 @@ O Hugging Face Spaces suporta Streamlit de forma nativa. Siga as instruções ab
 4. Selecione **Streamlit** como o SDK.
 5. Escolha a licença e clique em **Create Space**.
 6. Na aba **Files**, clique em **Add file** -> **Upload files**.
-7. Arraste e envie os dois arquivos essenciais do projeto:
+7. Envie os arquivos essenciais do projeto:
    - `app.py`
    - `requirements.txt`
+   - `README.md`
 8. Salve e commit. O Hugging Face irá compilar e abrir seu app em poucos instantes!
-
----
-
-### Método 2: Via Git (Terminal)
-Caso prefira usar o Git para enviar os arquivos para o Hugging Face:
-
-1. Crie o Space no Hugging Face com o SDK **Streamlit**.
-2. Clone o repositório do seu Space criado:
-   ```bash
-   git clone https://huggingface.co/spaces/SEU_USUARIO/NOME_DO_SPACE
-   ```
-3. Copie os arquivos `app.py` e `requirements.txt` para a pasta clonada.
-4. Envie as alterações:
-   ```bash
-   git add .
-   git commit -m "Deploy inicial"
-   git push
-   ```
 
 ---
 
