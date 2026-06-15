@@ -106,6 +106,98 @@ if 'df_cleaned' not in st.session_state:
 if 'api_history' not in st.session_state:
     st.session_state['api_history'] = []
 
+# --- MODAL DE TUTORIAL ---
+@st.dialog("📖 Como Usar o Picking & Arrumação Hub", width="large")
+def show_tutorial():
+    st.markdown("""
+## Visão Geral
+Ferramenta para importar, filtrar, analisar e exportar dados de inventário de picking e arrumação.
+
+---
+
+### 1. 📥 Carregar Dados (Sidebar)
+
+**Google Sheets:**
+- Marque *"Usar planilha padrão oficial"* para carregar a Planilha Oficial de Arrumação automaticamente.
+- Ou cole o **ID ou URL** de outra planilha pública do Google Sheets.
+- Clique em **🔍 Importar da Nuvem**.
+
+> ⚠️ A planilha precisa estar **pública** (compartilhada com "Qualquer pessoa com o link").
+
+**Arquivo Local:**
+- Selecione *"Carregar Arquivo Local"* e faça upload de um `.csv`, `.xlsx` ou `.xls`.
+
+---
+
+### 2. 📊 Aba — Dados & Filtros
+- Use os **filtros de Produto, Cor e Grade/Tamanho** para refinar os dados exibidos.
+- A tabela abaixo mostra os registros filtrados.
+- O contador indica quantos registros estão visíveis.
+
+---
+
+### 3. 📈 Aba — Dashboard Analítico
+Métricas e gráficos gerados automaticamente:
+
+| Métrica | Descrição |
+|---|---|
+| 🛒 SKUs Únicos | Linhas após filtros |
+| 👕 Total de Peças | Soma da coluna Quantidade |
+| 📦 Média p/ SKU | Média de peças por linha |
+| 🎨 Produtos / Cores | Contagem de distintos |
+
+**Gráficos disponíveis:**
+- 🍩 Donut — Volume por Grade/Tamanho
+- 📊 Top 10 Produtos por Volume
+- 🎨 Top 15 Cores por Volume
+
+---
+
+### 4. ⬇️ Baixar o JSON
+- Clique em **⬇️ Baixar Arquivo JSON** na sidebar (disponível após carregar os dados).
+- O arquivo é nomeado `arrumacao_DD-MM-AAAA.json`.
+- Colunas com `desc` no nome são **omitidas automaticamente** do JSON.
+- A coluna Quantidade é convertida para número inteiro.
+
+---
+
+### 5. 🚀 Aba — Pipeline & API Sandbox
+- Ative *"Envio de dados para API externa"* e preencha a URL, método HTTP e headers.
+- Clique em **🚀 Enviar Carga de Dados**.
+- O painel mostra status, tempo de resposta e corpo da resposta.
+- Histórico dos últimos 3 envios da sessão é registrado automaticamente.
+
+---
+
+### 🔄 Resetar Dados
+Clique em **🗑️ Limpar Todos os Dados** para recomeçar do zero.
+
+---
+
+### ⚙️ Colunas Esperadas
+
+| Coluna | Função |
+|---|---|
+| `Produto` | Código do produto |
+| `Cor` | Código de cor |
+| `Tamanho` | Tamanho do item |
+| `Grade` | Grade (PP, P, M, G, GG…) |
+| `Quantidade` / `Qtd` | Quantidade em estoque |
+| `desc_produto` | Descrição (usada nos gráficos, omitida no JSON) |
+
+---
+
+### ❓ Erros Comuns
+
+| Problema | Solução |
+|---|---|
+| "Erro ao ler planilha" | Verifique se a planilha é pública |
+| JSON vazio | Carregue os dados antes de baixar |
+| Gráficos não aparecem | Confirme que as colunas `Quantidade` e `Grade`/`Produto` existem |
+| Erro 401/403 na API | Verifique o token de autorização nos headers |
+""")
+
+
 # --- HEADER DA APLICAÇÃO ---
 st.markdown("""
 <div class="header-container">
@@ -193,13 +285,18 @@ if st.session_state.get('df_cleaned') is not None:
     _json_dl = json.dumps(_df_dl.to_dict(orient='records'), indent=4, ensure_ascii=False)
     _data_hoje_dl = datetime.now().strftime('%d-%m-%Y')
     st.sidebar.download_button(
-        label="⬇️ Baixar Arquivo JSON",
+        label="⬇️ Baixar Arquivo JSON Organizado",
         data=_json_dl,
         file_name=f"arrumacao_{_data_hoje_dl}.json",
         mime="application/json",
         use_container_width=True,
         key="sidebar_download_json"
     )
+
+# --- BOTÃO DE TUTORIAL NA SIDEBAR (rodapé) ---
+st.sidebar.markdown("---")
+if st.sidebar.button("📖 Como Usar esta Ferramenta", use_container_width=True):
+    show_tutorial()
 
 # --- FLUXO PRINCIPAL DE PROCESSAMENTO ---
 if st.session_state['df_raw'] is not None:
