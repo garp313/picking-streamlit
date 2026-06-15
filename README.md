@@ -9,19 +9,7 @@ Filtre e visualize os dados por Produto, Cor e Grade/Tamanho
 Acompanhe métricas e gráficos do inventário em tempo real
 Exporte os dados em formato JSON organizado (sem colunas de descrição internas)
 Envie os dados para uma API externa via HTTP (sandbox)
-🗂️ Estrutura da Interface
 
-┌─────────────────────────────────────────────────────────────┐
-│  Sidebar (Painel Lateral)      │  Área Principal (Abas)     │
-│  ─────────────────────         │  ──────────────────────     │
-│  ⚙️ Origem dos Dados           │  📊 Dados & Filtros         │
-│  ├─ Google Sheets              │  📈 Dashboard Analítico     │
-│  └─ Arquivo Local              │  🚀 Pipeline & API          │
-│                                │                             │
-│  🔍 Importar da Nuvem          │                             │
-│  🗑️ Limpar Todos os Dados      │                             │
-│  ⬇️ Baixar Arquivo JSON        │                             │
-└─────────────────────────────────────────────────────────────┘
 📥 Passo a Passo: Como Usar
 1. Escolher a Fonte de Dados
 No painel lateral (sidebar), selecione a origem dos seus dados:
