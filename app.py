@@ -181,6 +181,26 @@ if st.sidebar.button("🗑️ Limpar Todos os Dados", use_container_width=True):
     st.session_state['df_cleaned'] = None
     st.rerun()
 
+# --- BOTÃO DE DOWNLOAD JSON NA SIDEBAR ---
+if st.session_state.get('df_cleaned') is not None:
+    st.sidebar.markdown("---")
+    _df_dl = st.session_state['df_cleaned'].copy()
+    _cols_drop = st.session_state.get('cols_to_drop', [])
+    _df_dl = _df_dl.drop(columns=_cols_drop, errors='ignore')
+    _col_qtd_dl = next((c for c in _df_dl.columns if 'qtd' in c.lower() or 'quantidade' in c.lower()), None)
+    if _col_qtd_dl:
+        _df_dl[_col_qtd_dl] = pd.to_numeric(_df_dl[_col_qtd_dl], errors='coerce').fillna(0).astype(int)
+    _json_dl = json.dumps(_df_dl.to_dict(orient='records'), indent=4, ensure_ascii=False)
+    _data_hoje_dl = datetime.now().strftime('%d-%m-%Y')
+    st.sidebar.download_button(
+        label="⬇️ Baixar Arquivo JSON",
+        data=_json_dl,
+        file_name=f"arrumacao_{_data_hoje_dl}.json",
+        mime="application/json",
+        use_container_width=True,
+        key="sidebar_download_json"
+    )
+
 # --- FLUXO PRINCIPAL DE PROCESSAMENTO ---
 if st.session_state['df_raw'] is not None:
     df_raw = st.session_state['df_raw'].copy()
@@ -440,14 +460,15 @@ if st.session_state['df_raw'] is not None:
                 st.caption(f"Colunas omitidas no JSON: `{', '.join(cols_to_drop)}`")
             st.code(json_str, language="json")
             
-            # Botão de download
+            # Botão de download (também disponível na sidebar)
             data_hoje = datetime.now().strftime('%d-%m-%Y')
             st.download_button(
                 label="⬇️ Baixar Arquivo JSON Organizado",
                 data=json_str,
                 file_name=f"arrumacao_{data_hoje}.json",
                 mime="application/json",
-                use_container_width=True
+                use_container_width=True,
+                key="pipeline_download_json"
             )
             
         with col_pipe2:
