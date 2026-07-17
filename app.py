@@ -106,97 +106,180 @@ if 'df_cleaned' not in st.session_state:
 if 'api_history' not in st.session_state:
     st.session_state['api_history'] = []
 
-# --- MODAL DE TUTORIAL ---
-@st.dialog("📖 Como Usar o Picking & Arrumação Hub", width="large")
+# --- MODAL DE TUTORIAL COM A DOCUMENTAÇÃO COMPLETA ---
+@st.dialog("📖 Documentação de Uso", width="large")
 def show_tutorial():
     st.markdown("""
+# 📦 Picking & Arrumação Hub — Documentação de Uso
+
+> Ferramenta interna para importação, visualização, análise e exportação de dados de inventário de picking e arrumação.
+
+---
+
 ## Visão Geral
-Ferramenta para importar, filtrar, analisar e exportar dados de inventário de picking e arrumação.
+
+O **Picking & Arrumação Hub** é um painel interativo. Ele permite que a equipe:
+
+- Importe dados de estoque direto do Google Sheets ou de arquivos locais (CSV/Excel)
+- Filtre e visualize os dados por Produto, Cor e Grade/Tamanho
+- Acompanhe métricas e gráficos do inventário em tempo real
+- Exporte os dados em formato JSON organizado (sem colunas de descrição internas)
+- Envie os dados para uma API externa via HTTP (sandbox)
 
 ---
 
-### 1. 📥 Carregar Dados (Sidebar)
+## 🗂️ Estrutura da Interface
 
-**Google Sheets:**
-- Marque *"Usar planilha padrão oficial"* para carregar a Planilha Oficial de Arrumação automaticamente.
-- Ou cole o **ID ou URL** de outra planilha pública do Google Sheets.
-- Clique em **🔍 Importar da Nuvem**.
-
-> ⚠️ A planilha precisa estar **pública** (compartilhada com "Qualquer pessoa com o link").
-
-**Arquivo Local:**
-- Selecione *"Carregar Arquivo Local"* e faça upload de um `.csv`, `.xlsx` ou `.xls`.
-
----
-
-### 2. 📊 Aba — Dados & Filtros
-- Use os **filtros de Produto, Cor e Grade/Tamanho** para refinar os dados exibidos.
-- A tabela abaixo mostra os registros filtrados.
-- O contador indica quantos registros estão visíveis.
+~~~text
+┌─────────────────────────────────────────────────────────────┐
+│  Sidebar (Painel Lateral)      │  Área Principal (Abas)     │
+│  ─────────────────────         │  ──────────────────────    │
+│  ⚙️ Origem dos Dados           │  📊 Dados & Filtros        │
+│  ├─ Google Sheets              │  📈 Dashboard Analítico    │
+│  └─ Arquivo Local              │  🚀 Pipeline & API         │
+│                                │                            │
+│  🔍 Importar da Nuvem          │                            │
+│  🗑️ Limpar Todos os Dados      │                            │
+│  ⬇️ Baixar Arquivo JSON        │                            │
+│  📖 Como Usar (Documentação)   │                            │
+└─────────────────────────────────────────────────────────────┘
+~~~
 
 ---
 
-### 3. 📈 Aba — Dashboard Analítico
-Métricas e gráficos gerados automaticamente:
+## 📥 Passo a Passo: Como Usar
+
+### 1. Escolher a Fonte de Dados
+
+No **painel lateral** (sidebar), selecione a origem dos seus dados:
+
+#### Opção A — Google Sheets (Planilha Nuvem)
+
+1. Marque **"Usar planilha padrão oficial"** para carregar automaticamente a planilha *Oficial de Arrumação*.
+2. Ou desmarque e cole o **ID ou URL** de outra planilha do Google Sheets.
+
+> **IMPORTANTE:** A planilha do Google Sheets **deve estar configurada para acesso público** (compartilhada com "Qualquer pessoa com o link"). Caso contrário, o botão de importação retornará erro.
+
+3. Clique em **🔍 Importar da Nuvem**.
+
+#### Opção B — Arquivo Local (CSV/Excel)
+
+1. Selecione **"Carregar Arquivo Local (CSV/Excel)"**.
+2. Clique em **"Browse files"** e selecione um arquivo `.csv`, `.xlsx` ou `.xls` do seu computador.
+3. O carregamento é automático após a seleção.
+
+---
+
+### 2. Explorar Dados e Filtros (Aba "📊 Dados & Filtros")
+
+Após carregar os dados, a aba principal exibirá:
+
+- **Filtros interativos** por:
+  - **Produto** — código do produto
+  - **Cor** — código de cor
+  - **Grade/Tamanho** — ex.: PP, P, M, G, GG
+
+- Uma **tabela completa** com os dados filtrados, reordenada automaticamente para exibir as colunas principais primeiro: `Produto`, `Cor`, `Tamanho`, `Grade`, `Quantidade`.
+
+> **DICA:** O contador acima da tabela indica quantos registros estão sendo exibidos após os filtros ativos.
+
+---
+
+### 3. Analisar o Dashboard (Aba "📈 Dashboard Analítico")
+
+Esta aba exibe métricas e gráficos gerados a partir dos dados filtrados:
 
 | Métrica | Descrição |
 |---|---|
-| 🛒 SKUs Únicos | Linhas após filtros |
-| 👕 Total de Peças | Soma da coluna Quantidade |
-| 📦 Média p/ SKU | Média de peças por linha |
-| 🎨 Produtos / Cores | Contagem de distintos |
+| 🛒 **SKUs Únicos** | Quantidade de linhas (combinações produto+cor+grade) |
+| 👕 **Total de Peças** | Soma da coluna Quantidade |
+| 📦 **Média p/ SKU** | Média de peças por linha |
+| 🎨 **Produtos / Cores** | Contagem de produtos e cores distintos |
 
 **Gráficos disponíveis:**
-- 🍩 Donut — Volume por Grade/Tamanho
-- 📊 Top 10 Produtos por Volume
-- 🎨 Top 15 Cores por Volume
+
+- 🍩 **Donut — Volume por Grade/Tamanho**: distribuição percentual por tamanho
+- 📊 **Top 10 Produtos por Volume**: barras horizontais com os produtos mais volumosos
+- 🎨 **Top 15 Cores por Volume**: barras horizontais das cores com maior estoque
 
 ---
 
-### 4. ⬇️ Baixar o JSON
-- Clique em **⬇️ Baixar Arquivo JSON** na sidebar (disponível após carregar os dados).
-- O arquivo é nomeado `arrumacao_DD-MM-AAAA.json`.
-- Colunas com `desc` no nome são **omitidas automaticamente** do JSON.
-- A coluna Quantidade é convertida para número inteiro.
+### 4. Exportar o JSON (Sidebar e Aba "🚀 Pipeline")
+
+O botão **⬇️ Baixar Arquivo JSON** fica disponível **na sidebar** assim que os dados forem carregados, e também dentro da aba Pipeline.
+
+- O arquivo gerado é nomeado automaticamente com a data atual: `arrumacao_DD-MM-AAAA.json`
+- Colunas com `desc` no nome (ex.: `desc_produto`) são **removidas automaticamente** do JSON exportado para manter o payload limpo
+- A coluna `Quantidade` é convertida para número inteiro no JSON
+
+**Exemplo de estrutura do JSON exportado:**
+~~~json
+[
+    {
+        "Produto": "12345",
+        "Cor": "001",
+        "Tamanho": "M",
+        "Grade": "M",
+        "Quantidade": 42
+    }
+]
+~~~
 
 ---
 
-### 5. 🚀 Aba — Pipeline & API Sandbox
-- Ative *"Envio de dados para API externa"* e preencha a URL, método HTTP e headers.
-- Clique em **🚀 Enviar Carga de Dados**.
-- O painel mostra status, tempo de resposta e corpo da resposta.
-- Histórico dos últimos 3 envios da sessão é registrado automaticamente.
+### 5. Enviar para API Externa (Aba "🚀 Pipeline — API Sandbox")
+
+> **NOTA:** Este recurso é **opcional** e voltado para integrações técnicas. Não é necessário para o uso cotidiano da ferramenta.
+
+1. Na aba **🚀 Pipeline de Exportação & API**, acesse a coluna da direita.
+2. Ative a opção **"Ativar envio de dados para API externa"**.
+3. Preencha:
+   - **URL da API de Destino** — ex.: `https://api.seuservico.com/v1/picking`
+   - **Método HTTP** — `POST`, `PUT` ou `PATCH`
+   - **Headers** — no formato JSON (o campo já vem preenchido com um template padrão)
+4. Clique em **🚀 Enviar Carga de Dados**.
+
+O painel exibirá:
+- ✅ Código de status HTTP da resposta
+- ⏱️ Tempo de resposta em segundos
+- 📋 Headers e corpo da resposta da API
+- 📜 Histórico dos últimos 3 envios da sessão
 
 ---
 
-### 🔄 Resetar Dados
-Clique em **🗑️ Limpar Todos os Dados** para recomeçar do zero.
+## 🔄 Resetar Dados
+
+Para limpar todos os dados carregados e começar do zero, clique em **🗑️ Limpar Todos os Dados** na sidebar.
 
 ---
 
-### ⚙️ Colunas Esperadas
+## ⚙️ Colunas Esperadas na Planilha
+
+A ferramenta reconhece automaticamente as seguintes colunas (não sensível a maiúsculas):
 
 | Coluna | Função |
 |---|---|
-| `Produto` | Código do produto |
+| `Produto` | Código ou nome do produto |
 | `Cor` | Código de cor |
 | `Tamanho` | Tamanho do item |
-| `Grade` | Grade (PP, P, M, G, GG…) |
-| `Quantidade` / `Qtd` | Quantidade em estoque |
-| `desc_produto` | Descrição (usada nos gráficos, omitida no JSON) |
+| `Grade` | Grade do item (PP, P, M, G, GG...) |
+| `Quantidade` ou `Qtd` | Quantidade em estoque |
+| `desc_produto` | Descrição textual (exibida nos gráficos, omitida no JSON) |
+
+> **NOTA:** Colunas fora deste padrão serão mantidas no final da tabela e incluídas no JSON exportado.
 
 ---
 
-### ❓ Erros Comuns
+## ❓ Problemas Comuns
 
 | Problema | Solução |
 |---|---|
-| "Erro ao ler planilha" | Verifique se a planilha é pública |
-| JSON vazio | Carregue os dados antes de baixar |
-| Gráficos não aparecem | Confirme que as colunas `Quantidade` e `Grade`/`Produto` existem |
+| "Erro ao ler planilha" | Verifique se a planilha está pública no Google Sheets |
+| JSON vazio ou sem dados | Certifique-se de ter carregado os dados antes de baixar |
+| Gráficos não aparecem | Verifique se as colunas `Quantidade` e `Grade`/`Produto` existem na planilha |
 | Erro 401/403 na API | Verifique o token de autorização nos headers |
+| Erro de conexão na API | Verifique a URL e se o serviço está acessível |
 """)
-
 
 # --- HEADER DA APLICAÇÃO ---
 st.markdown("""
@@ -219,8 +302,6 @@ data_source = st.sidebar.radio(
     ["Google Sheets (Planilha Nuvem)", "Carregar Arquivo Local (CSV/Excel)"]
 )
 
-loaded_successfully = False
-
 if data_source == "Google Sheets (Planilha Nuvem)":
     use_default = st.sidebar.checkbox("Usar planilha padrão oficial", value=True)
     if use_default:
@@ -232,25 +313,26 @@ if data_source == "Google Sheets (Planilha Nuvem)":
             st.sidebar.warning("Por favor, insira o ID da planilha.")
 
     if st.sidebar.button("🔍 Importar da Nuvem", use_container_width=True):
-        # Limpar o ID se o usuário colar a URL inteira
         extracted_id = sheet_id
+        # Extrai o ID caso o usuário cole a URL completa
         if "spreadsheets/d/" in sheet_id:
             try:
                 extracted_id = sheet_id.split("spreadsheets/d/")[1].split("/")[0]
             except Exception:
                 pass
         
-        url_csv = f"https://docs.google.com/spreadsheets/d/{extracted_id}/export?format=csv"
+        # Adicionado &gid=0 para garantir que ele baixe a primeira aba corretamente
+        url_csv = f"https://docs.google.com/spreadsheets/d/{extracted_id}/export?format=csv&gid=0"
         
         try:
             with st.spinner("Conectando ao Google Sheets..."):
-                # Lê todas as colunas como string para proteger formatos (como zeros à esquerda em códigos)
                 df = pd.read_csv(url_csv, dtype=str)
                 df.columns = df.columns.str.strip()
                 st.session_state['df_raw'] = df
                 st.sidebar.success("✅ Importado com sucesso!")
         except Exception as e:
-            st.sidebar.error(f"❌ Erro ao ler planilha. Verifique se o link está público para compartilhamento. Erro: {e}")
+            st.sidebar.error("❌ Erro ao ler planilha. Verifique se o link está público (Qualquer pessoa com o link).")
+            st.sidebar.caption(f"Detalhe do erro técnico: {e}")
 
 else:
     uploaded_file = st.sidebar.file_uploader("Selecione um arquivo CSV ou Excel:", type=["csv", "xlsx", "xls"])
@@ -273,27 +355,11 @@ if st.sidebar.button("🗑️ Limpar Todos os Dados", use_container_width=True):
     st.session_state['df_cleaned'] = None
     st.rerun()
 
-# --- BOTÃO DE DOWNLOAD JSON NA SIDEBAR ---
-if st.session_state.get('df_cleaned') is not None:
-    st.sidebar.markdown("---")
-    _df_dl = st.session_state['df_cleaned'].copy()
-    _cols_drop = st.session_state.get('cols_to_drop', [])
-    _df_dl = _df_dl.drop(columns=_cols_drop, errors='ignore')
-    _col_qtd_dl = next((c for c in _df_dl.columns if 'qtd' in c.lower() or 'quantidade' in c.lower()), None)
-    if _col_qtd_dl:
-        _df_dl[_col_qtd_dl] = pd.to_numeric(_df_dl[_col_qtd_dl], errors='coerce').fillna(0).astype(int)
-    _json_dl = json.dumps(_df_dl.to_dict(orient='records'), indent=4, ensure_ascii=False)
-    _data_hoje_dl = datetime.now().strftime('%d-%m-%Y')
-    st.sidebar.download_button(
-        label="⬇️ Baixar Arquivo JSON Organizado",
-        data=_json_dl,
-        file_name=f"arrumacao_{_data_hoje_dl}.json",
-        mime="application/json",
-        use_container_width=True,
-        key="sidebar_download_json"
-    )
+# Espaço reservado EXATO na barra lateral para o botão de download JSON (usado mais abaixo)
+st.sidebar.markdown("---")
+placeholder_download_sidebar = st.sidebar.empty()
 
-# --- BOTÃO DE TUTORIAL NA SIDEBAR (rodapé) ---
+# --- BOTÃO DE TUTORIAL NA SIDEBAR ---
 st.sidebar.markdown("---")
 if st.sidebar.button("📖 Como Usar esta Ferramenta", use_container_width=True):
     show_tutorial()
@@ -371,6 +437,28 @@ if st.session_state['df_raw'] is not None:
         st.session_state['df_cleaned'] = df_filtered
         st.session_state['cols_to_drop'] = cols_to_drop
 
+        # =========================================================================
+        # INJETANDO O BOTÃO DE JSON NA SIDEBAR DIRETAMENTE NO PLACEHOLDER
+        # =========================================================================
+        _df_dl = df_filtered.copy()
+        _df_dl = _df_dl.drop(columns=cols_to_drop, errors='ignore')
+        _col_qtd_dl = next((c for c in _df_dl.columns if 'qtd' in c.lower() or 'quantidade' in c.lower()), None)
+        if _col_qtd_dl:
+            _df_dl[_col_qtd_dl] = pd.to_numeric(_df_dl[_col_qtd_dl], errors='coerce').fillna(0).astype(int)
+        
+        _json_dl = json.dumps(_df_dl.to_dict(orient='records'), indent=4, ensure_ascii=False)
+        _data_hoje_dl = datetime.now().strftime('%d-%m-%Y')
+        
+        # Chamando a função diretamente no placeholder cria o botão lá na barra lateral
+        placeholder_download_sidebar.download_button(
+            label="⬇️ Baixar Arquivo JSON Organizado",
+            data=_json_dl,
+            file_name=f"arrumacao_{_data_hoje_dl}.json",
+            mime="application/json",
+            use_container_width=True,
+            key="sidebar_download_json_final"
+        )
+
     # --- ABA 2: DASHBOARD ANALÍTICO ---
     with tab_analytics:
         st.markdown("### 📊 Insights & Estatísticas do Inventário")
@@ -418,7 +506,6 @@ if st.session_state['df_raw'] is not None:
             col_g = next((c for c in df_filtered.columns if c.lower() == 'grade'), None)
             if col_g and col_qtd:
                 grade_data = df_filtered.groupby(col_g)[col_qtd].sum().reset_index()
-                # Ordenação lógica de grade se possível
                 tamanho_order = {"PP":0, "P":1, "M":2, "G":3, "GG":4, "XG":5, "EG":6}
                 grade_data['order'] = grade_data[col_g].map(tamanho_order).fillna(99)
                 grade_data = grade_data.sort_values('order')
@@ -442,15 +529,12 @@ if st.session_state['df_raw'] is not None:
                 st.info("Colunas de 'Grade' ou 'Quantidade' não encontradas para exibir gráfico de Grade.")
                 
         with g_col2:
-            # 2. Top Produtos mais volumosos — usa desc_produto se disponível
+            # 2. Top Produtos mais volumosos
             col_desc = next((c for c in df_filtered.columns if 'desc' in c.lower()), None)
-            label_col = col_desc if col_desc else col_p
-
             if col_p and col_qtd:
                 if col_desc:
                     prod_data = df_filtered.groupby([col_p, col_desc])[col_qtd].sum().reset_index()
                     prod_data = prod_data.sort_values(by=col_qtd, ascending=False).head(10)
-                    # Trunca descrição para caber no gráfico
                     prod_data['label'] = prod_data[col_desc].str.slice(0, 22)
                 else:
                     prod_data = df_filtered.groupby(col_p)[col_qtd].sum().reset_index()
@@ -469,65 +553,39 @@ if st.session_state['df_raw'] is not None:
                     color=col_qtd,
                     color_continuous_scale=[[0, '#6366f1'], [1, '#a855f7']]
                 )
-                fig_bar.update_traces(
-                    texttemplate='%{text}',
-                    textposition='outside',
-                    marker_line_width=0
-                )
+                fig_bar.update_traces(texttemplate='%{text}', textposition='outside', marker_line_width=0)
                 fig_bar.update_layout(
-                    paper_bgcolor='rgba(0,0,0,0)',
-                    plot_bgcolor='rgba(0,0,0,0)',
-                    font_color='#f3f4f6',
-                    font_size=12,
-                    showlegend=False,
-                    coloraxis_showscale=False,
+                    paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#f3f4f6',
+                    font_size=12, showlegend=False, coloraxis_showscale=False,
                     xaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.05)', title='Qtd. de Peças'),
-                    yaxis=dict(showgrid=False, title=''),
-                    margin=dict(t=50, b=20, l=10, r=60)
+                    yaxis=dict(showgrid=False, title=''), margin=dict(t=50, b=20, l=10, r=60)
                 )
                 st.plotly_chart(fig_bar, use_container_width=True)
             else:
                 st.info("Colunas de 'Produto' ou 'Quantidade' não encontradas para exibir gráfico de Produtos.")
 
         st.markdown("---")
-        # 3. Top 15 Cores mais volumosas (horizontal, limpo)
+        # 3. Top 15 Cores mais volumosas
         if col_c and col_qtd:
             st.markdown("#### 🎨 Top 15 Cores por Volume")
             color_data = (
                 df_filtered.groupby(col_c)[col_qtd]
-                .sum()
-                .reset_index()
-                .sort_values(by=col_qtd, ascending=False)
-                .head(15)
+                .sum().reset_index()
+                .sort_values(by=col_qtd, ascending=False).head(15)
                 .sort_values(by=col_qtd, ascending=True)
             )
             color_data[col_c] = "Cor " + color_data[col_c].astype(str)
 
             fig_color = px.bar(
-                color_data,
-                x=col_qtd,
-                y=col_c,
-                orientation='h',
-                title="Top 15 Cores por Volume de Peças",
-                text=col_qtd,
-                color=col_qtd,
-                color_continuous_scale=[[0, '#0ea5e9'], [1, '#6366f1']]
+                color_data, x=col_qtd, y=col_c, orientation='h', title="Top 15 Cores por Volume de Peças",
+                text=col_qtd, color=col_qtd, color_continuous_scale=[[0, '#0ea5e9'], [1, '#6366f1']]
             )
-            fig_color.update_traces(
-                texttemplate='%{text}',
-                textposition='outside',
-                marker_line_width=0
-            )
+            fig_color.update_traces(texttemplate='%{text}', textposition='outside', marker_line_width=0)
             fig_color.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                font_color='#f3f4f6',
-                font_size=12,
-                showlegend=False,
-                coloraxis_showscale=False,
+                paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#f3f4f6',
+                font_size=12, showlegend=False, coloraxis_showscale=False,
                 xaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.05)', title='Qtd. de Peças'),
-                yaxis=dict(showgrid=False, title=''),
-                margin=dict(t=50, b=20, l=10, r=60)
+                yaxis=dict(showgrid=False, title=''), margin=dict(t=50, b=20, l=10, r=60)
             )
             st.plotly_chart(fig_color, use_container_width=True)
 
@@ -535,38 +593,13 @@ if st.session_state['df_raw'] is not None:
     with tab_pipeline:
         st.markdown("### ⚙️ Pipeline de Exportação JSON & Envio")
         
-        # Preparando os dados finais para o JSON
-        df_export = st.session_state['df_cleaned'].copy()
-        cols_to_drop = st.session_state.get('cols_to_drop', [])
-        
-        df_export_json = df_export.drop(columns=cols_to_drop, errors='ignore')
-        
-        # Converter coluna quantidade para número se existir
-        col_qtd = next((c for c in df_export_json.columns if 'qtd' in c.lower() or 'quantidade' in c.lower()), None)
-        if col_qtd:
-            df_export_json[col_qtd] = pd.to_numeric(df_export_json[col_qtd], errors='coerce').fillna(0).astype(int)
-            
-        json_data = df_export_json.to_dict(orient='records')
-        json_str = json.dumps(json_data, indent=4, ensure_ascii=False)
-        
         col_pipe1, col_pipe2 = st.columns(2)
         
         with col_pipe1:
             st.markdown("#### 📝 Preview do JSON Gerado")
             if cols_to_drop:
                 st.caption(f"Colunas omitidas no JSON: `{', '.join(cols_to_drop)}`")
-            st.code(json_str, language="json")
-            
-            # Botão de download (também disponível na sidebar)
-            data_hoje = datetime.now().strftime('%d-%m-%Y')
-            st.download_button(
-                label="⬇️ Baixar Arquivo JSON Organizado",
-                data=json_str,
-                file_name=f"arrumacao_{data_hoje}.json",
-                mime="application/json",
-                use_container_width=True,
-                key="pipeline_download_json"
-            )
+            st.code(_json_dl, language="json")
             
         with col_pipe2:
             st.markdown("#### 🚀 API Sandbox (Opcional)")
@@ -581,12 +614,10 @@ if st.session_state['df_raw'] is not None:
                 with col_h:
                     st.caption("Configurações rápidas de envio")
                 
-                # Custom Headers
                 st.markdown("**Headers Customizados (JSON format)**")
                 default_headers = '{\n    "Content-Type": "application/json",\n    "Authorization": "Bearer TOKEN_AQUI"\n}'
                 headers_text = st.text_area("Insira os Headers HTTP no formato JSON:", value=default_headers, height=100)
                 
-                # Botão de Envio
                 if st.button("🚀 Enviar Carga de Dados", use_container_width=True):
                     if not api_url:
                         st.error("⚠️ Por favor, insira a URL de destino da API.")
@@ -601,18 +632,17 @@ if st.session_state['df_raw'] is not None:
                         with st.spinner("Transmitindo lote para API..."):
                             try:
                                 t_start = datetime.now()
+                                json_data = json.loads(_json_dl)
                                 
-                                # Realizar a chamada HTTP
                                 if api_method == "POST":
                                     response = requests.post(api_url, json=json_data, headers=headers, timeout=10)
                                 elif api_method == "PUT":
-                                    response = requests.post(api_url, json=json_data, headers=headers, timeout=10)
-                                else: # PATCH
+                                    response = requests.put(api_url, json=json_data, headers=headers, timeout=10)
+                                else: 
                                     response = requests.patch(api_url, json=json_data, headers=headers, timeout=10)
                                     
                                 t_duration = (datetime.now() - t_start).total_seconds()
                                 
-                                # Registrar resposta no histórico
                                 log_entry = {
                                     "timestamp": datetime.now().strftime('%H:%M:%S'),
                                     "method": api_method,
@@ -628,7 +658,6 @@ if st.session_state['df_raw'] is not None:
                                 else:
                                     st.error(f"❌ Falha no envio. Código de retorno: {response.status_code}")
                                     
-                                # Exibir painel da última resposta
                                 st.markdown("**Último Log de Resposta:**")
                                 st.markdown(f"""
                                 <div class="api-log-box">
@@ -644,7 +673,6 @@ if st.session_state['df_raw'] is not None:
                             except Exception as api_err:
                                 st.error(f"❌ Falha catastrófica de conexão: {api_err}")
                 
-                # Histórico de Envio
                 if st.session_state['api_history']:
                     st.markdown("---")
                     st.markdown("📜 **Histórico de Envios nesta Sessão**")
@@ -653,13 +681,10 @@ if st.session_state['df_raw'] is not None:
                         st.markdown(f"**{status_color} {item['timestamp']}** | {item['method']} | {item['status']} | Duração: {item['duration']}")
                         st.caption(f"URL: {item['url']}")
             else:
-                st.info("ℹ️ O envio automático para API está desativado. Você pode utilizar a coluna ao lado para baixar seu arquivo JSON de arrumação.")
+                st.info("ℹ️ O envio automático para API está desativado. Você pode utilizar a barra lateral para baixar seu arquivo JSON.")
 
 else:
-    # Caso nenhum dado tenha sido carregado
     st.info("👋 Seja bem-vindo! Para começar, utilize o menu lateral para selecionar e carregar seus dados (via Google Sheets ou Arquivo Local).")
-    
-    # Exibir um card ilustrativo
     st.markdown("""
     <div style="background: rgba(255, 255, 255, 0.02); border: 1px dashed rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 3rem; text-align: center;">
         <h4 style="color: #9ca3af; margin-bottom: 0.5rem;">Aguardando dados...</h4>
